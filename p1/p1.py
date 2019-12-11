@@ -1,5 +1,7 @@
 #!/usr/bin/python3
 
+# AoC 2019 Problem 1a and 1b Solution
+
 fname = "input1a.txt"
 
 dbg = False
