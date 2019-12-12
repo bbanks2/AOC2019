@@ -1,0 +1,4 @@
+Mass: 12  Fuel: 2
+Mass: 14  Fuel: 2
+Mass: 1969  Fuel: 654
+Mass: 100756  Fuel: 33583
