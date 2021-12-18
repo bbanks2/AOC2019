@@ -15,51 +15,46 @@ class PolymerPairInserter():
     def __init__(self):
         self.rules = {}
         self.start = {}
-        self.callstack = 0
-        self.totalrecursecalls = 0
-        self.maxcallstack = 0
+        self.freqcnt = [0] * 26
 
     def setRules(self, rules):
         self.rules = rules.copy()
+        self.paircnts = {}
+        for k in rules.keys():
+            self.paircnts[k] = 0
 
     def setStart(self, start):
         self.start = start
-
-    def recursePair(self, pair, numsteps):
-        if(numsteps == 0):
-            self.freqcnt[ord(pair[0]) - ord('A')] += 1
-            # print("Recpair reached base for end pair: {0} , now self.freqcnt is: {1}".format(pair, self.freqcnt))
-            return
-        inschar = self.rules.get(pair)
-        npair1 = pair[0] + inschar
-        npair2 = inschar + pair[1]
-        self.totalrecursecalls += 1
-        if (self.totalrecursecalls % 1000000 == 0):
-            print("At totalcalls: {0} numsteps: {1} for pair: {2} Callstack: {3} Freqcnt: {4}".format(
-                self.totalrecursecalls, numsteps, pair, self.callstack, self.freqcnt))
-        self.callstack += 1
-        if (self.callstack > self.maxcallstack):
-            self.maxcallstack = self.callstack
-        self.recursePair(npair1, numsteps - 1)
-        self.recursePair(npair2, numsteps - 1)
-        self.callstack -= 1
-#        print("With numsteps: ", numsteps, " left, nstr is: ", nstr)
-        return
-
-    def getFreqcnt(self, numsteps):
-        self.freqcnt = [0] * 26
         for j in range(1, len(self.start)):
             pstr = self.start[j - 1:j + 1]
-            print("Starting recursion for start pair #: {0} pair: {1} for numsteps: {2}".format(j, pstr, numsteps))
-            self.recursePair(pstr, numsteps)
-#            print("pstr: {0} numsteps: {1} Nstr: {2}".format(pstr, numsteps, nstr))
-#            dupl_adjust = 1
-#            if(j == len(self.start) - 1):
-#                dupl_adjust = 0
-#            for i in range(len(nstr) - dupl_adjust):
-#                freqcnt[ord(nstr[i]) - ord('A')] += 1
-        self.freqcnt[ord(self.start[j]) - ord('A')] += 1
-        print("Sum freqcnt: {0} Maxcallstack: {1} Freqcnt: {2}".format(sum(self.freqcnt), self.maxcallstack, self.freqcnt))
+            self.paircnts[pstr] += 1
+#        print("Paircnts: ", self.paircnts)
+
+    def stepPaircnts(self):
+        freqcnt = [0] * 26
+        ncnts = self.paircnts.copy()
+        for k, v in self.rules.items():
+            pcnt = self.paircnts[k]
+            lpair = k[0] + v
+            rpair = v + k[1]
+            ncnts[k] -= pcnt
+            ncnts[lpair] += pcnt
+            ncnts[rpair] += pcnt
+            freqcnt[ord(k[0]) - ord('A')] += pcnt
+            freqcnt[ord(v) - ord('A')] += pcnt
+            # Don't add the right side cause it double counts for any letter not on extreme left or right end.
+            # Add the +1 for right end letter in caller
+        self.paircnts = ncnts
+        return freqcnt
+
+    def getFreqcnt(self, numsteps):
+        for i in range(numsteps):
+            self.prevfc = self.freqcnt
+            self.freqcnt = self.stepPaircnts()
+            self.freqcnt[ord(self.start[-1]) - ord('A')] += 1 # adding the +1 for rightmost letter
+#            print("Numsteps: {0} Sum freqcnt: {1} Freqcnt: {2}".format(i+1, sum(self.freqcnt), self.freqcnt))
+#        for i in range(len(self.freqcnt)):
+#            print(i, self.prevfc[i], self.freqcnt[i] - self.prevfc[i])
         return self.freqcnt
 
 def ansa():
@@ -79,7 +74,7 @@ def ansb(rules, start, numsteps):
 
 def main():
     numstepsa = 10
-    numstepsb = 10
+    numstepsb = 40
     f = open(fname)
     lines = f.readlines()
     i = 0
@@ -96,7 +91,7 @@ def main():
         w = l.split()
         rules[w[0]] = w[2]
         i += 1
-    print(rules)
+#    print(rules)
 
     pstr = start
     nstr = ""
@@ -109,12 +104,12 @@ def main():
             nstr = nstr + pstr[j-1] + inschar
 #            print(nstr)
         pstr = nstr + pstr[-1]
-        print("After step #: ", i, " len(pstr) is: ", len(pstr))
+#        print("After step #: ", i, " len(pstr) is: ", len(pstr))
 
     freqcnt = [0] * 26
     for i in range(len(pstr)):
         freqcnt[ord(pstr[i]) - ord('A')] += 1
-    print("Freqcnt: ", freqcnt)
+#    print("Freqcnt: ", freqcnt)
     while (0 in freqcnt):
         freqcnt.remove(0)
 
