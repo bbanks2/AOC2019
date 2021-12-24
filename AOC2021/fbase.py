@@ -1,14 +1,14 @@
 #!/usr/bin/python3
 
-# AoC 2021 Problem 13 Solutions
+# AoC 2021 Problem 18 Solutions
 
 from io import IncrementalNewlineDecoder
 
-fname = "input13.txt"
+fname = "input18.txt"
 
 dbg = False
 dbg = True
-if dbg: fname = "testinp13.txt"
+if dbg: fname = "testinp18.1.txt"
 
 
 def ansa():
